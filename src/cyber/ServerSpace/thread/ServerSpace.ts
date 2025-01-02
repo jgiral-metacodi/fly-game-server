@@ -3,6 +3,7 @@ import { EventEmitter } from "events";
 import type { RoomState } from "../../schema/RoomState";
 import type { PlayerState } from "../../schema/PlayerState";
 import * as ethers from "ethers";
+import * as Tokens from "../../libs/tokens";
 import { exitGame, loadGame } from "../loadGame";
 import { ServerApi, ServerHandler } from "./ServerApi";
 // @ts-ignore
@@ -10,73 +11,73 @@ import { Web3Api, LocalProvider } from "@oogg/server-engine";
 import { PlayerData } from "../../abstract/types";
 
 export interface ServerSpaceParams {
-  gameData: any;
-  debugPhysics?: boolean;
-  isDraft?: boolean;
-  serverHandler: ServerHandler;
+	gameData: any;
+	debugPhysics?: boolean;
+	isDraft?: boolean;
+	serverHandler: ServerHandler;
 }
 
 export class ServerSpace {
-  //
-  engine = null;
-  playerManager = null;
-  space = null;
-  spawn: any = null;
-  // avatar = null;
-  // coins = null;
-  // coinModel = null;
+	//
+	engine = null;
+	playerManager = null;
+	space = null;
+	spawn: any = null;
+	// avatar = null;
+	// coins = null;
+	// coinModel = null;
 
-  state: RoomState = null;
+	state: RoomState = null;
 
-  serverApi: ServerApi = null;
+	serverApi: ServerApi = null;
 
-  dt = 1 / 60;
-  iv = null;
-  time = 0;
+	dt = 1 / 60;
+	iv = null;
+	time = 0;
 
-  maxFrame = 0;
-  avgFrame = 0;
+	maxFrame = 0;
+	avgFrame = 0;
 
-  static create() {
-    //
-    globalThis.$$serverSpace = new ServerSpace();
-  }
+	static create() {
+		//
+		globalThis.$$serverSpace = new ServerSpace();
+	}
 
-  constructor() {}
+	constructor() {}
 
-  private canLoadComponent(component: any) {
-    // this is a little hacky, should be moved to the engine
-    // But since this still can change often, keeping it here
-    // so that we can make quick changes
-    return (
-      component.type === "prefab" ||
-      component.type === "script" ||
-      component.type === "model" ||
-      component.type === "mesh" ||
-      component.type === "group" ||
-      // This will be handled by the engine by checking
-      // either (deprecate) "use server" or config.server == true
-      component.type?.startsWith("script") ||
-      component.collider?.enabled ||
-      component.type === "spawn"
-    );
-  }
+	private canLoadComponent(component: any) {
+		// this is a little hacky, should be moved to the engine
+		// But since this still can change often, keeping it here
+		// so that we can make quick changes
+		return (
+			component.type === "prefab" ||
+			component.type === "script" ||
+			component.type === "model" ||
+			component.type === "mesh" ||
+			component.type === "group" ||
+			// This will be handled by the engine by checking
+			// either (deprecate) "use server" or config.server == true
+			component.type?.startsWith("script") ||
+			component.collider?.enabled ||
+			component.type === "spawn"
+		);
+	}
 
-  async init(opts: ServerSpaceParams) {
-    //
-    const { gameData } = opts;
+	async init(opts: ServerSpaceParams) {
+		//
+		const { gameData } = opts;
 
-    this.spawn = gameData.components["spawn"];
+		this.spawn = gameData.components["spawn"];
 
-    this.serverApi = new ServerApi(opts.serverHandler);
+		this.serverApi = new ServerApi(opts.serverHandler);
 
-    const secrets = gameData.components.multiplayer?.secrets;
+		const secrets = gameData.components.multiplayer?.secrets;
 
-    secrets?.forEach((secret) => {
-      process.env[secret.key] = secret.value;
-    });
+		secrets?.forEach((secret) => {
+			process.env[secret.key] = secret.value;
+		});
 
-    /*
+		/*
     this is causing weird issues on fly.io servers
     GlobalRegistrator.register({
       url: "http://localhost:3000",
@@ -85,231 +86,232 @@ export class ServerSpace {
     });
     */
 
-    const res = await loadGame(gameData, {
-      debugPhysics: opts.debugPhysics ?? true,
-      serverApi: {
-        GameServer: this.serverApi,
-        Ai: this.serverApi.ai,
-        Web3: new Web3Api({
-          web3provider: new LocalProvider({
-            privateKey: process.env.PRIVATE_KEY,
-            alchemyKey: process.env.ALCHEMY_KEY,
-          }),
-        }),
-      },
-      serverLibs: {
-        ethers,
-      },
-      isDraft: opts.isDraft ?? true,
-      filter: (component: any) => {
-        return this.canLoadComponent(component);
-      },
-    });
+		const res = await loadGame(gameData, {
+			debugPhysics: opts.debugPhysics ?? true,
+			serverApi: {
+				GameServer: this.serverApi,
+				Ai: this.serverApi.ai,
+				Web3: new Web3Api({
+					web3provider: new LocalProvider({
+						privateKey: process.env.PRIVATE_KEY,
+						alchemyKey: process.env.ALCHEMY_KEY,
+					}),
+				}),
+				Tokens: Tokens,
+			},
+			serverLibs: {
+				ethers,
+			},
+			isDraft: opts.isDraft ?? true,
+			filter: (component: any) => {
+				return this.canLoadComponent(component);
+			},
+		});
 
-    this.engine = res.engine;
+		this.engine = res.engine;
 
-    this.playerManager = res.players;
+		this.playerManager = res.players;
 
-    this.space = this.engine.getCurrentSpace();
+		this.space = this.engine.getCurrentSpace();
 
-    console.log("Space loaded");
+		console.log("Space loaded");
 
-    // this.coins = coins;
-    this.space.physics.active = true;
+		// this.coins = coins;
+		this.space.physics.active = true;
 
-    this.space.physics.update(1 / 60);
+		this.space.physics.update(1 / 60);
 
-    this.time = Date.now() / 1000;
+		this.time = Date.now() / 1000;
 
-    this.iv = setInterval(() => {
-      const now = Date.now() / 1000;
-      let dt = now - this.time;
-      this.time = now;
-      this.update(dt);
-      const dts = Date.now() / 1000 - now;
-      //
-      this.maxFrame = Math.round(Math.max(dts, this.maxFrame) * 1000);
-      this.avgFrame = Math.round(dts * 1000);
-    }, 1000 / 60);
+		this.iv = setInterval(() => {
+			const now = Date.now() / 1000;
+			let dt = now - this.time;
+			this.time = now;
+			this.update(dt);
+			const dts = Date.now() / 1000 - now;
+			//
+			this.maxFrame = Math.round(Math.max(dts, this.maxFrame) * 1000);
+			this.avgFrame = Math.round(dts * 1000);
+		}, 1000 / 60);
 
-    return {
-      entities: this.serverApi._entitiesSchema,
-    };
-  }
+		return {
+			entities: this.serverApi._entitiesSchema,
+		};
+	}
 
-  async handleRpcRequest({ request, sessionId }) {
-    //
-    const { data, msgId } = request;
+	async handleRpcRequest({ request, sessionId }) {
+		//
+		const { data, msgId } = request;
 
-    let isReq = !!data.method;
+		let isReq = !!data.method;
 
-    let event = isReq
-      ? this.engine.Events.RPC_REMOTE_REQ
-      : this.engine.Events.RPC_REMOTE_RES;
+		let event = isReq
+			? this.engine.Events.RPC_REMOTE_REQ
+			: this.engine.Events.RPC_REMOTE_RES;
 
-    this.engine.notify(event, {
-      data,
-      msgId,
-      sessionId,
-    });
-  }
+		this.engine.notify(event, {
+			data,
+			msgId,
+			sessionId,
+		});
+	}
 
-  private _getRpcRecipient(rpcId: string) {
-    //
-    return this.space.components.find((c) => {
-      return c._rpcId === rpcId;
-    });
-  }
+	private _getRpcRecipient(rpcId: string) {
+		//
+		return this.space.components.find((c) => {
+			return c._rpcId === rpcId;
+		});
+	}
 
-  startGame() {
-    //
-    this.space.start();
-  }
+	startGame() {
+		//
+		this.space.start();
+	}
 
-  stopGame() {
-    //
-    this.space.stop();
-  }
+	stopGame() {
+		//
+		this.space.stop();
+	}
 
-  async onJoin(player: PlayerData) {
-    //
-    if (this.space == null) {
-      console.error("Space not loaded!");
-      return;
-    }
+	async onJoin(player: PlayerData) {
+		//
+		if (this.space == null) {
+			console.error("Space not loaded!");
+			return;
+		}
 
-    const p = this.playerManager.addPlayer(player, {
-      collision: true,
-    });
+		const p = this.playerManager.addPlayer(player, {
+			collision: true,
+		});
 
-    this.serverApi._roomJoin(player);
+		this.serverApi._roomJoin(player);
 
-    await p.avatarReady;
-  }
+		await p.avatarReady;
+	}
 
-  _netstateCache = new WeakMap<{ version: number; state: any }>();
+	_netstateCache = new WeakMap<{ version: number; state: any }>();
 
-  onBeforePatch() {
-    //
-    const entities = this.serverApi._entitiesSchema;
+	onBeforePatch() {
+		//
+		const entities = this.serverApi._entitiesSchema;
 
-    let state = {
-      players: {},
-      entities: {},
-    };
+		let state = {
+			players: {},
+			entities: {},
+		};
 
-    Object.keys(entities).forEach((entity) => {
-      //
-      const cs = this.space.components.byType(entity);
+		Object.keys(entities).forEach((entity) => {
+			//
+			const cs = this.space.components.byType(entity);
 
-      cs.forEach((c) => {
-        //
-        let current = c.data.netState;
+			cs.forEach((c) => {
+				//
+				let current = c.data.netState;
 
-        if (current) {
-          //
-          let cached = this._netstateCache.get(c);
+				if (current) {
+					//
+					let cached = this._netstateCache.get(c);
 
-          if (cached == null) {
-            cached = {
-              version: 0,
-              state: undefined,
-              rpcId: c._rpcId,
-            };
-            this._netstateCache.set(c, cached);
-          }
+					if (cached == null) {
+						cached = {
+							version: 0,
+							state: undefined,
+							rpcId: c._rpcId,
+						};
+						this._netstateCache.set(c, cached);
+					}
 
-          if (cached.state !== current) {
-            cached.state = current;
-            cached.version++;
-          } else {
-            return;
-          }
-          state.entities[entity] ??= [];
-          state.entities[entity].push(cached);
-        }
-      });
-    });
+					if (cached.state !== current) {
+						cached.state = current;
+						cached.version++;
+					} else {
+						return;
+					}
+					state.entities[entity] ??= [];
+					state.entities[entity].push(cached);
+				}
+			});
+		});
 
-    Object.keys(this.playerManager.players).forEach((sessionId) => {
-      //
-      const player = this.playerManager.players[sessionId];
+		Object.keys(this.playerManager.players).forEach((sessionId) => {
+			//
+			const player = this.playerManager.players[sessionId];
 
-      state.players[sessionId] = player.data;
-    });
+			state.players[sessionId] = player.data;
+		});
 
-    return state;
-  }
+		return state;
+	}
 
-  onLeave(player: PlayerData) {
-    //
-    this.playerManager.removePlayer(player.sessionId);
+	onLeave(player: PlayerData) {
+		//
+		this.playerManager.removePlayer(player.sessionId);
 
-    this.serverApi._roomLeave(player);
-  }
+		this.serverApi._roomLeave(player);
+	}
 
-  onPlayerState(data: PlayerData) {
-    //
-    const player = this.playerManager.get(data.sessionId);
+	onPlayerState(data: PlayerData) {
+		//
+		const player = this.playerManager.get(data.sessionId);
 
-    if (this.spawn.useUserAvatar && player.avatar) {
-      if (data.vrmUrl && data.vrmUrl !== player.avatar.vrmUrl) {
-        // console.log(
-        //   "Update VRM",
-        //   data.sessionId,
-        //   data.vrmUrl,
-        //   player.avatar.collider.raw.radius()
-        // );
-        player.avatar.updateVRM(data.vrmUrl).then(() => {
-          // TODO, move to engine
-          const dims = player.avatar.getDimensions();
-          player.avatar.rigidBody?._updateColliders(dims);
-          // console.log("VRM Updated", player.avatar.collider.raw.radius());
-        });
-      }
-    }
+		if (this.spawn.useUserAvatar && player.avatar) {
+			if (data.vrmUrl && data.vrmUrl !== player.avatar.vrmUrl) {
+				// console.log(
+				//   "Update VRM",
+				//   data.sessionId,
+				//   data.vrmUrl,
+				//   player.avatar.collider.raw.radius()
+				// );
+				player.avatar.updateVRM(data.vrmUrl).then(() => {
+					// TODO, move to engine
+					const dims = player.avatar.getDimensions();
+					player.avatar.rigidBody?._updateColliders(dims);
+					// console.log("VRM Updated", player.avatar.collider.raw.radius());
+				});
+			}
+		}
 
-    this.serverApi._roomPlayerState(data);
-  }
+		this.serverApi._roomPlayerState(data);
+	}
 
-  private _accumulatedTime = 0;
+	private _accumulatedTime = 0;
 
-  update(dt: number) {
-    //
-    let now = Date.now() / 1000;
+	update(dt: number) {
+		//
+		let now = Date.now() / 1000;
 
-    this.engine.notify(this.engine.Events.ANIM_UPDATE, this.dt, now);
+		this.engine.notify(this.engine.Events.ANIM_UPDATE, this.dt, now);
 
-    this.engine.notify(this.engine.Events.PRE_UPDATE, this.dt, now);
+		this.engine.notify(this.engine.Events.PRE_UPDATE, this.dt, now);
 
-    this._accumulatedTime += dt;
+		this._accumulatedTime += dt;
 
-    while (this._accumulatedTime >= this.dt) {
-      //
-      this.engine.notify(this.engine.Events.FIXED_UPDATE, this.dt, now);
+		while (this._accumulatedTime >= this.dt) {
+			//
+			this.engine.notify(this.engine.Events.FIXED_UPDATE, this.dt, now);
 
-      this.space.physics.updateFixed(this.dt);
+			this.space.physics.updateFixed(this.dt);
 
-      this._accumulatedTime -= this.dt;
+			this._accumulatedTime -= this.dt;
 
-      now += this.dt;
-    }
+			now += this.dt;
+		}
 
-    this.engine.notify(
-      this.engine.Events.JUST_AFTER_PHYSICS_UPDATE,
-      this.dt,
-      now
-    );
-  }
+		this.engine.notify(
+			this.engine.Events.JUST_AFTER_PHYSICS_UPDATE,
+			this.dt,
+			now
+		);
+	}
 
-  dispose() {
-    //
-    // GlobalRegistrator.unregister();
+	dispose() {
+		//
+		// GlobalRegistrator.unregister();
 
-    this.stopGame();
+		this.stopGame();
 
-    clearInterval(this.iv);
+		clearInterval(this.iv);
 
-    exitGame();
-  }
+		exitGame();
+	}
 }

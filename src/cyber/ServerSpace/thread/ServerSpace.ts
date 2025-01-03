@@ -55,10 +55,13 @@ export class ServerSpace {
       component.type === "model" ||
       component.type === "mesh" ||
       component.type === "group" ||
+      component.type === "avatar" ||
+      component.type === "navmesh" ||
       // This will be handled by the engine by checking
       // either (deprecate) "use server" or config.server == true
       component.type?.startsWith("script") ||
       component.collider?.enabled ||
+      component.script?.tag?.includes("@server") ||
       component.type === "spawn"
     );
   }

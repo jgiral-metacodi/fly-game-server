@@ -327,6 +327,17 @@ export class ColyseusGameRoom extends Room {
   }
 }
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught Exception thrown", err);
+  process.exit(1);
+});
+
+// catch Unhandled Rejections
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.exit(1);
+});
+
 process.on("exit", (code) => {
   console.log(`About to exit with code: ${code}`);
 });

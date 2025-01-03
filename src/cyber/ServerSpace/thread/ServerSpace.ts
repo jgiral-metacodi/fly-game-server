@@ -187,6 +187,9 @@ export class ServerSpace {
       collision: true,
     });
 
+    // console.log("Added player", player.sessionId);
+    // console.log("Players", Object.keys(this.playerManager.players));
+
     this.serverApi._roomJoin(player);
 
     await p.avatarReady;

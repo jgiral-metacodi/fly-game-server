@@ -22,7 +22,9 @@ export interface PlayerData {
   // Server authoritative state
   position: { x: number; y: number; z: number };
   rotation: { x: number; y: number; z: number };
+  scale: number;
   animation: string;
+  text: string;
 }
 
 export const CYBER_MSG = 999_999;

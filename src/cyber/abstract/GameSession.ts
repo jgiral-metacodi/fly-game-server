@@ -600,10 +600,12 @@ export abstract class GameSession<
       role,
       position: { x: 0, y: 0, z: 0 },
       rotation: { x: 0, y: 0, z: 0 },
+      scale: 1,
       animation: "idle",
       latency: 0,
       jitter: 0,
       plugins: "",
+      text: "",
     };
   }
 

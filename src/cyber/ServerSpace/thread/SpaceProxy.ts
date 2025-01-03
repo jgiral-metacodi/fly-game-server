@@ -178,7 +178,7 @@ export class SpaceProxy {
 
   onPlayerState(data: PlayerData) {
     //
-    this.serverSpace.onPlayerState(data);
+    this.serverSpace.onPlayerState(data, this.session.authoritativePosition);
   }
 
   onMessage(type, message, playerId) {

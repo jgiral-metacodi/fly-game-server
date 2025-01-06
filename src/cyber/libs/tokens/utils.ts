@@ -232,3 +232,28 @@ export async function getCompleteBoundingCurveSwapTransaction({
 		tx: swap.swapTransaction,
 	};
 }
+
+export async function getTokenSupply(mintAddress) {
+	try {
+		const response = await fetch("https://api.mainnet-beta.solana.com", {
+			method: "POST",
+			headers: {
+        		"Content-Type": "application/json"
+    		},
+			body: JSON.stringify({
+				"jsonrpc": "2.0",
+				"id": 1,
+				"method": "getTokenSupply",
+				"params": [mintAddress]
+			})
+		});
+		const data = await response.json();
+		return data?.result?.value?.uiAmount;
+	} catch (error) {
+		return null;
+	}
+}
+
+// 6TcoT3vcexjsMuuLvS9DhBUrVVcoqBMHEppQGQLMpump
+// [15:56]
+// 8vBMibwpn8wpfYKbQ9xqzodymg3LjmYec2tSNGRy23K8

@@ -1,13 +1,10 @@
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-
 import {
-	Connection,
-	Keypair,
 	PublicKey,
 	LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 
-import { CONNECTION, pumpfunSDK } from "./utils";
+import { getTokenSupply, pumpfunSDK } from "./utils";
+import { getPrice } from "./price";
 
 export function calculatePumpCurvePrice(bondingCurveData) {
 	const { virtualTokenReserves, virtualSolReserves } = bondingCurveData;
@@ -20,32 +17,11 @@ export function calculatePumpCurvePrice(bondingCurveData) {
 }
 
 export async function getMarketcap(mintAddress) {
-	const boundingCurveAccount = await pumpfunSDK.getBondingCurveAccount(
-		new PublicKey(mintAddress)
-	);
-
-	if (!boundingCurveAccount.complete) {
-		const price = calculatePumpCurvePrice(boundingCurveAccount);
-
-		return {
-			marketcap:
-				price *
-				(Number(boundingCurveAccount.tokenTotalSupply) / 10 ** 6),
-			isNotComplete: true,
-		};
-	}
-
-	const request = await fetch(
-		`https://api.jup.ag/price/v2?ids=${mintAddress}`
-	);
-
-	const response = await request.json();
-
-	return {
-		marketcap:
-			response.data[mintAddress].price *
-			(Number(boundingCurveAccount.tokenTotalSupply) / 10 ** 6),
-	};
+	//
+	const { price } = await getPrice(mintAddress);
+	const tokenTotalSupply = await getTokenSupply(mintAddress);
+  	const marketcap = Number(price) * Number(tokenTotalSupply);
+  	return { marketcap };
 }
 
 class MarketcapChecker {

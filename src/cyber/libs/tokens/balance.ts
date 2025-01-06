@@ -1,10 +1,5 @@
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
-import {
-	Connection,
-	Keypair,
-	PublicKey,
-	LAMPORTS_PER_SOL,
-} from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { CONNECTION } from "./utils";
 
 class BalanceChecker {

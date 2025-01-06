@@ -19,21 +19,12 @@ export function calculatePumpCurvePrice(bondingCurveData) {
 	);
 }
 
+const DEFAULT_SOLANA_ADDRESS = "So11111111111111111111111111111111111111112";
+
 export async function getPrice(mintAddress) {
-	const boundingCurveAccount = await pumpfunSDK.getBondingCurveAccount(
-		new PublicKey(mintAddress)
-	);
-
-	if (boundingCurveAccount && !boundingCurveAccount?.complete) {
-		const price = calculatePumpCurvePrice(boundingCurveAccount);
-
-		return {
-			price: Number(price),
-		};
-	}
-
+	//
 	const request = await fetch(
-		`https://api.jup.ag/price/v2?ids=${mintAddress}`
+		`https://api.jup.ag/price/v2?ids=${mintAddress},${DEFAULT_SOLANA_ADDRESS}`
 	);
 
 	const response = await request.json();

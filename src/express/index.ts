@@ -8,6 +8,7 @@ import basicAuth from "express-basic-auth";
 import { Mutex } from "async-mutex";
 import { GameApi } from "../cyber/abstract/GameApi";
 import { clearIdleTimeout } from "../timeout";
+import { verify } from "./authMiddleware";
 
 const mutex = new Mutex();
 
@@ -88,7 +89,28 @@ export function initializeExpress(app: any) {
         });
       }
 
-      const { gameId, userId, username } = req.body;
+      let { gameId, userId, username } = req.body;
+
+      // token is in X-Auth-Token header
+      const token = req.headers["x-auth-token"] as string;
+
+      if (userId !== "anon") {
+        //
+        if (!token) {
+          userId = "anon";
+        } else {
+          // verify token from cookie
+          const decodedToken = verify(token);
+          const uid = decodedToken?.uid;
+
+          if (uid?.toLowerCase() !== userId?.toLowerCase()) {
+            return res.status(401).json({
+              success: false,
+              message: "Unauthorized",
+            });
+          }
+        }
+      }
 
       await mutex.runExclusive(async () => {
         //

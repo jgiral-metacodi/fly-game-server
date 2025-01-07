@@ -1,11 +1,12 @@
-import { PublicKey } from "@solana/web3.js";
-
 import {
-	getBoundingCurveSwapTransaction,
-	getCompleteBoundingCurveSwapTransaction,
-	getDelegateWallet,
-	pumpfunSDK,
+	CONNECTION,
+	WRAPPED_SOL,
+	jupiterApiClient,
 } from "./utils";
+import {
+	PublicKey,
+} from "@solana/web3.js";
+import { QuoteGetRequest } from "@jup-ag/api";
 
 export async function sell(
 	{
@@ -32,49 +33,93 @@ export async function sell(
 	}
 ) {
 	//
-	//
 	try {
-		// if (delegate) {
-		// 	userAddress = await getDelegateWallet({
-		// 		privyId: privyUserId,
+		
+		// const bc = await pumpfunSDK.getBondingCurveAccount(
+		// 	new PublicKey(mintAddress)
+		// );
+
+		// if (bc.complete) {
+		// 	return await getCompleteBoundingCurveSwapTransaction({
+		// 		from: mintAddress,
+		// 		to: "So11111111111111111111111111111111111111112",
+		// 		userAddress,
+		// 		amount: amount * 10 ** 6,
+		// 		slippage,
+		// 		// priorityFee,
+		// 		delegate,
 		// 	});
 		// }
 
-		const bc = await pumpfunSDK.getBondingCurveAccount(
-			new PublicKey(mintAddress)
-		);
+		// let globalAccount = await pumpfunSDK.getGlobalAccount("confirmed");
 
-		if (bc.complete) {
-			return await getCompleteBoundingCurveSwapTransaction({
-				from: mintAddress,
-				to: "So11111111111111111111111111111111111111112",
-				userAddress,
-				amount: amount * 10 ** 6,
-				slippage,
-				// priorityFee,
-				delegate,
-			});
-		}
+		// const minSolOutput = bc.getSellPrice(
+		// 	BigInt(amount * 10 ** 6),
+		// 	globalAccount.feeBasisPoints
+		// );
 
-		let globalAccount = await pumpfunSDK.getGlobalAccount("confirmed");
+		// let sellAmountWithSlippage =
+		// 	Number(minSolOutput) - Number(minSolOutput) * (slippage / 100);
 
-		const minSolOutput = bc.getSellPrice(
-			BigInt(amount * 10 ** 6),
-			globalAccount.feeBasisPoints
-		);
+		// return await getBoundingCurveSwapTransaction({
+		// 	priorityFee,
+		// 	mintAddress,
+		// 	userAddress,
+		// 	amount: amount * 10 ** 6,
+		// 	maxAmountLamports: BigInt(Math.floor(sellAmountWithSlippage)),
+		// 	delegate,
+		// 	type: "sell",
+		// });
 
-		let sellAmountWithSlippage =
-			Number(minSolOutput) - Number(minSolOutput) * (slippage / 100);
+		// Get token's decimal places
+		const mintInfo = await CONNECTION.getParsedAccountInfo(new PublicKey(mintAddress));
+		const decimals = mintInfo.value?.data['parsed']['info']['decimals'];
 
-		return await getBoundingCurveSwapTransaction({
-			priorityFee,
-			mintAddress,
-			userAddress,
-			amount: amount * 10 ** 6,
-			maxAmountLamports: BigInt(Math.floor(sellAmountWithSlippage)),
-			delegate,
-			type: "sell",
-		});
+		const nativeAmount = amount * Math.pow(10, decimals);
+
+		console.log('nativeAmount', nativeAmount)
+
+		const quoteParams: QuoteGetRequest = {
+            inputMint: mintAddress, 
+            outputMint: WRAPPED_SOL,
+            amount: nativeAmount,
+            slippageBps: slippage * 100
+        };
+
+		// Get quote for selling
+        const quote = await jupiterApiClient.quoteGet(quoteParams);
+
+        if (!quote) {
+            throw new Error("Unable to get sell quote");
+        }
+
+		const swapObj = await jupiterApiClient.swapPost({
+            swapRequest: {
+                quoteResponse: quote,
+                userPublicKey: userAddress,
+                dynamicComputeUnitLimit: true,
+                dynamicSlippage: {
+                    maxBps: 300, // Cap at 3% for safety
+                },
+                prioritizationFeeLamports: priorityFee > 0 ? {
+                    priorityLevelWithMaxLamports: {
+                        maxLamports: priorityFee,
+                        priorityLevel: "veryHigh"
+                    }
+                } : undefined
+            }
+        });
+
+		// Deserialize the transaction
+        const swapTransactionBuf = Buffer.from(swapObj.swapTransaction, "base64");
+		const tx = swapTransactionBuf.toString("base64");
+
+		console.log('tx', tx)
+
+		return {
+			success: true,
+			tx,
+		};
 	} catch (error) {
 		console.error(error);
 		return { error: error.message, success: false };

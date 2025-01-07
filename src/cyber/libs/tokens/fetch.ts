@@ -38,14 +38,23 @@ export async function fetchMetadata({ mintAddress }) {
 			.findByMint({ mintAddress: new PublicKey(mintAddress) });
 
 		try {
+
 			const uriRequest = await fetch(tokenMetadata.uri);
 
-			const uriResponse = await uriRequest.json();
+			const contentType = uriRequest.headers.get('content-type');
 
-			tokenMetadata = {
-				...tokenMetadata,
-				...uriResponse,
-			};
+			if(contentType && contentType.includes('application/json')) {
+				
+				const uriResponse = await uriRequest.json();
+
+				tokenMetadata = {
+					...tokenMetadata,
+					...uriResponse,
+				};
+				
+			}
+
+			
 		} catch (err) {
 			console.log(err);
 		}

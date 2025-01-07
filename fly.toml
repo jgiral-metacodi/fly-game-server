@@ -3,15 +3,12 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'awe-game-server'
+app = 'awe-pumpfun-server'
 primary_region = 'iad'
 
 [build]
 
 [env]
-FLY_PROXY = 'awe-game-router.fly.dev'
-SINGLE_ROOM = 'true'
-ROOM_IDLE_TIMEOUT_SEC = '1800'
 
 [http_service]
 internal_port = 2567
@@ -26,6 +23,6 @@ policy = "never"
 
 
 [[vm]]
-memory = '512mb'
+memory = '1gb'
 cpu_kind = 'shared'
 cpus = 2

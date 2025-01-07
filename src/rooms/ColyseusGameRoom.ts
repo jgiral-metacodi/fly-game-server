@@ -183,14 +183,6 @@ export class ColyseusGameRoom extends Room {
   }
   */
 
-  _nbLog = 0;
-
-  log(...args: any[]) {
-    if (this._nbLog++ < 50) {
-      console.log(...args);
-    }
-  }
-
   onBeforePatch() {
     //
     this._roomHandler?._CALLBACKS_.beforePatch();
@@ -302,13 +294,6 @@ export class ColyseusGameRoom extends Room {
   onUncaughtException(error: RoomException<this>, methodName: string): void {
     //
     this._logger.error("Uncaught Exception", error.message, methodName);
-
-    if (isSingletonRoom) {
-      //
-      console.error("Room is singleton, closing");
-
-      process.exit(1);
-    }
   }
 
   private _disposed = false;
@@ -326,17 +311,6 @@ export class ColyseusGameRoom extends Room {
     this._roomHandler?._CALLBACKS_.shutdown();
   }
 }
-
-process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception thrown", err);
-  process.exit(1);
-});
-
-// catch Unhandled Rejections
-process.on("unhandledRejection", (reason, promise) => {
-  console.error("Unhandled Rejection at:", promise, "reason:", reason);
-  process.exit(1);
-});
 
 process.on("exit", (code) => {
   console.log(`About to exit with code: ${code}`);

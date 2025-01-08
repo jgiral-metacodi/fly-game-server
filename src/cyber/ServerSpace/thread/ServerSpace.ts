@@ -343,11 +343,16 @@ export class ServerSpace {
   dispose() {
     //
     // GlobalRegistrator.unregister();
+    try {
+      //
+      this.stopGame();
 
-    this.stopGame();
+      clearInterval(this.iv);
 
-    clearInterval(this.iv);
-
-    exitGame();
+      exitGame();
+    } catch (err) {
+      //
+      console.error("Error disposing dispace", err);
+    }
   }
 }

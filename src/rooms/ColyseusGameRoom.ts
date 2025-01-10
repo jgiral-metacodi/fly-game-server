@@ -166,7 +166,7 @@ export class ColyseusGameRoom extends Room {
       });
       //
     } catch (err) {
-      this._logger.error(err);
+      this._logger.error("Error creating room", err);
     }
   }
 

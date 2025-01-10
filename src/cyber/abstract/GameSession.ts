@@ -374,13 +374,23 @@ export abstract class GameSession<
           //
           this.spaceProxy = new SpaceProxy();
 
-          // We must run the server space, so that the space scripts
-          // can attach their schemas to the room state
-          await this.spaceProxy.init({
-            session: this,
-            debugPhysics: true,
-            isDraft: true,
-          });
+          try {
+            // We must run the server space, so that the space scripts
+            // can attach their schemas to the room state
+            console.log("Server simulation enabled. Creating server space");
+
+            await this.spaceProxy.init({
+              session: this,
+              debugPhysics: true,
+              isDraft: true,
+            });
+
+            console.log("Server space created");
+          } catch (e) {
+            //
+            console.error("Error creating server space", e);
+            throw e;
+          }
         }
       }
 

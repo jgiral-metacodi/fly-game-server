@@ -86,6 +86,8 @@ export class ServerSpace {
     });
     */
 
+    console.log("Loading game space...");
+
     const res = await loadGame(gameData, {
       debugPhysics: opts.debugPhysics ?? true,
       serverApi: {
@@ -114,7 +116,7 @@ export class ServerSpace {
 
     this.space = this.engine.getCurrentSpace();
 
-    console.log("Space loaded");
+    console.log("Game space loaded");
 
     // this.coins = coins;
     this.space.physics.active = true;

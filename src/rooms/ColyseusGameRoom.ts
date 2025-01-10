@@ -306,7 +306,8 @@ export class ColyseusGameRoom extends Room {
 
     this._logger.info("Room disposed");
 
-    startIdleTimeout();
+    // startIdleTimeout();
+    process.exit(0);
 
     this._roomHandler?._CALLBACKS_.shutdown();
   }

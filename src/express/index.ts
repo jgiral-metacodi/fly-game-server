@@ -104,10 +104,8 @@ export function initializeExpress(app: any) {
           const uid = decodedToken?.uid;
 
           if (uid?.toLowerCase() !== userId?.toLowerCase()) {
-            return res.status(401).json({
-              success: false,
-              message: "Unauthorized",
-            });
+            console.log("uid mismatch", uid, userId);
+            userId = "anon";
           }
         }
       }

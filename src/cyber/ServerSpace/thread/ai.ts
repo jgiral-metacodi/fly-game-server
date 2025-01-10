@@ -2,9 +2,8 @@ import * as ai from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGroq } from "@ai-sdk/groq";
-import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import zod from "zod";
-import { mode } from "happy-dom/lib/PropertySymbol";
 
 const modelFetch = (url, opts) => {
   return globalThis.$$ofetch(url, opts);

@@ -185,7 +185,7 @@ export function initializeExpress(app: any) {
 
           res.status(500).json({
             success: false,
-            message: "Unexpected Server error while joining room",
+            message: err?.message ?? err ?? "Unexpected Server Error",
           });
         }
       });
@@ -193,7 +193,7 @@ export function initializeExpress(app: any) {
       console.log("err", err);
       res.status(500).json({
         success: false,
-        message: "Server error",
+        message: err?.message ?? err ?? "Unexpected Server Error",
       });
     }
   });

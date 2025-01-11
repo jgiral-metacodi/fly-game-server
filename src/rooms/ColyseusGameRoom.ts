@@ -37,6 +37,8 @@ export class ColyseusGameRoom extends Room {
     this._uroomid = Math.random().toString(36).substring(2, 7);
 
     this.setSeatReservationTime(120);
+
+    this.autoDispose = false;
   }
 
   private _setRoomHandler(handler: any) {
@@ -167,6 +169,7 @@ export class ColyseusGameRoom extends Room {
       //
     } catch (err) {
       this._logger.error("Error creating room", err);
+      throw err;
     }
   }
 
@@ -285,6 +288,7 @@ export class ColyseusGameRoom extends Room {
 
       if (this.clients.length === 0) {
         this._logger.info("No more connections, closing room");
+        this.disconnect();
 
         // this._room._CALLBACKS_.shutdown();
       }

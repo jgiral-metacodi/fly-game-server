@@ -16,7 +16,7 @@ import {
 import { RoomState } from "../schema/RoomState";
 import { calcLatencyIPDTV } from "./utils";
 import { PlayerState } from "../schema/PlayerState";
-import { SpaceProxy } from "../ServerSpace/thread/SpaceProxy";
+import type { SpaceProxy } from "../ServerSpace/thread/SpaceProxy";
 
 const defaults = {
   autoStart: false,
@@ -372,6 +372,8 @@ export abstract class GameSession<
           console.error("Server side physics is disabled in this environment");
         } else {
           //
+          const SpaceProxy =
+            require("../ServerSpace/thread/SpaceProxy").SpaceProxy;
           this.spaceProxy = new SpaceProxy();
 
           try {

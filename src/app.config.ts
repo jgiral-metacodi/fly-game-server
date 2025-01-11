@@ -1,6 +1,4 @@
 import config from "@colyseus/tools";
-import { monitor } from "@colyseus/monitor";
-import { playground } from "@colyseus/playground";
 import { rooms } from "./rooms";
 import { initializeExpress } from "./express";
 

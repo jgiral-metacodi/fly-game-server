@@ -21,21 +21,5 @@ import app from "./app.config";
  */
 globalThis.$$ofetch = fetch;
 
-console.log(
-  "*****************************************************************"
-);
-console.log(
-  "*****************************************************************"
-);
-console.log(
-  "**************** Starting Colyseus server... ********************"
-);
-console.log(
-  "*****************************************************************"
-);
-console.log(
-  "*****************************************************************"
-);
-
 // Create and listen on 2567 (or PORT environment variable.)
 listen(app);

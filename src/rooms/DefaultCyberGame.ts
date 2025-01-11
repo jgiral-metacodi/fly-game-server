@@ -1,7 +1,5 @@
-import { GameSession, State } from "../cyber";
-import { PlayerData, PlayerStatePayload } from "../cyber/abstract/types";
+import { GameSession } from "../cyber";
 import { PlayerState } from "../cyber/schema/PlayerState";
-import { RoomState } from "../cyber/schema/RoomState";
 
 export class DefaultCyberGame extends GameSession {
   //

@@ -1,6 +1,6 @@
 import { Room, Client, logger, RoomException } from "@colyseus/core";
 import { DefaultCyberGame } from "./DefaultCyberGame";
-import { ScriptFactory } from "../cyber/scripting";
+// import { ScriptFactory } from "../cyber/scripting";
 import {
   clearIdleTimeout,
   isSingletonRoom,
@@ -126,7 +126,7 @@ export class ColyseusGameRoom extends Room {
 
       this._gameData = opts.gameData;
 
-      let roomHandlerClass = ScriptFactory.instance.init(opts.gameData);
+      let roomHandlerClass = null; //ScriptFactory.instance.init(opts.gameData);
 
       let roomHandler;
 

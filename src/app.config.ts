@@ -1,10 +1,7 @@
 import config from "@colyseus/tools";
 import { rooms } from "./rooms";
 import { initializeExpress } from "./express";
-
-const flyApp = process.env.FLY_APP_NAME;
-const flyMachine = process.env.FLY_MACHINE_ID;
-const flyProxy = process.env.FLY_PROXY;
+import { flyProxy, flyMachine, flyApp } from "./env";
 
 const publicAddress =
   flyProxy && flyMachine ? `${flyProxy}/${flyMachine}` : null;

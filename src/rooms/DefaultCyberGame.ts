@@ -15,7 +15,7 @@ export class DefaultCyberGame extends GameSession {
 
   async onPreload() {
     //
-    console.log("Preloading...");
+    this.logger.log("Preloading...");
   }
 
   static onAuth(token: any, request: any): Promise<void> {
@@ -24,11 +24,11 @@ export class DefaultCyberGame extends GameSession {
   }
 
   async onJoin(player) {
-    console.log(player.sessionId, player.userId, "joined!");
+    this.logger.log(player.sessionId, player.userId, "joined!");
   }
 
   onLeave(player) {
-    console.log(player.sessionId, player.userId, "left!");
+    this.logger.log(player.sessionId, player.userId, "left!");
   }
 
   onMessage(message: any, player: PlayerState): void {
@@ -36,7 +36,7 @@ export class DefaultCyberGame extends GameSession {
     super.onMessage(message, player);
 
     //
-    // console.log("Message received from", player.sessionId, message);
+    // this.logger.log("Message received from", player.sessionId, message);
     // if (message.type === "collect") {
     //   //
     //   const coin = this.state.coins.get(message.coinId);
@@ -81,7 +81,7 @@ export class DefaultCyberGame extends GameSession {
   // }
 
   // onUpdate(dt: number): void {
-  //   console.log("updating...");
+  //   this.logger.log("updating...");
   //   this.state.players.forEach((player) => {
   //     //
   //     player.position.x += 0.01;
@@ -89,6 +89,6 @@ export class DefaultCyberGame extends GameSession {
   // }
 
   onDispose() {
-    console.log("disposed");
+    this.logger.log("disposed");
   }
 }

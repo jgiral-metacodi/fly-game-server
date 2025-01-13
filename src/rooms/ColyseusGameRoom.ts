@@ -1,11 +1,7 @@
-import { Room, Client, logger, RoomException } from "@colyseus/core";
+import { Room, Client, RoomException } from "@colyseus/core";
 import { DefaultCyberGame } from "./DefaultCyberGame";
-// import { ScriptFactory } from "../cyber/scripting";
-import {
-  clearIdleTimeout,
-  isSingletonRoom,
-  startIdleTimeout,
-} from "../timeout";
+import { Logger } from "../logger";
+import { isSingletonRoom } from "../env";
 
 const defaults = {
   PATCH_RATE: 1000 / 20,
@@ -21,7 +17,7 @@ export class ColyseusGameRoom extends Room {
 
   private _gameData: any;
 
-  private _logger = logger;
+  private _logger = new Logger("room");
 
   private _uroomid: string;
 
@@ -116,6 +112,10 @@ export class ColyseusGameRoom extends Room {
     client.leave(reason);
   }
 
+  get logger() {
+    return this._logger;
+  }
+
   async onCreate(opts: any) {
     try {
       if (!opts.gameId) {
@@ -126,23 +126,25 @@ export class ColyseusGameRoom extends Room {
       this._gameId =
         opts.gameId ?? "anon-" + Math.random().toString(36).substr(2, 9);
 
+      this._logger = new Logger(this._gameId);
+
       this._gameData = opts.gameData;
 
       let roomHandlerClass = null; //ScriptFactory.instance.init(opts.gameData);
 
       let roomHandler;
 
-      if (roomHandlerClass == null) {
-        //
-        console.log("No room handler found, using default");
+      // if (roomHandlerClass == null) {
+      //
+      // console.log("No room handler found, using default");
 
-        roomHandler = new DefaultCyberGame(this);
-      } else {
-        //
-        console.log("Room handler found");
+      roomHandler = new DefaultCyberGame(this);
+      // } else {
+      //   //
+      //   console.log("Room handler found");
 
-        roomHandler = new roomHandlerClass(this);
-      }
+      //   roomHandler = new roomHandlerClass(this);
+      // }
 
       this._logger.info("Creating Room for game", this._gameId);
 
@@ -297,7 +299,7 @@ export class ColyseusGameRoom extends Room {
 
   onUncaughtException(error: RoomException<this>, methodName: string): void {
     //
-    this._logger.error("Uncaught Exception", error.message, methodName);
+    this._logger.error("Uncaught Exception", error?.message, methodName);
   }
 
   private _disposed = false;
@@ -310,8 +312,10 @@ export class ColyseusGameRoom extends Room {
 
     this._logger.info("Room disposed");
 
-    // startIdleTimeout();
-    process.exit(0);
+    if (isSingletonRoom) {
+      this._logger.log("Singleton room. Process will exit now!");
+      process.exit(0);
+    }
 
     this._roomHandler?._CALLBACKS_.shutdown();
   }

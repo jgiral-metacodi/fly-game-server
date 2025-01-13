@@ -1,5 +1,6 @@
 //
-export const isSingletonRoom = process.env.SINGLE_ROOM === "true";
+
+import { isSingletonRoom } from "./env";
 
 const IDLE_TIMEOUT = (+process.env.ROOM_IDLE_TIMEOUT_SEC || 30 * 60) * 1000;
 

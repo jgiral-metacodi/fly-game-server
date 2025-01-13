@@ -17,6 +17,7 @@ import { RoomState } from "../schema/RoomState";
 import { calcLatencyIPDTV } from "./utils";
 import { PlayerState } from "../schema/PlayerState";
 import type { SpaceProxy } from "../ServerSpace/thread/SpaceProxy";
+import { Logger } from "../../logger";
 
 const defaults = {
   autoStart: false,
@@ -64,6 +65,8 @@ export interface GameRoomCtx {
   nbConnected: number;
   setState: (state: any) => void;
   disconnect: () => void;
+
+  get logger(): Logger;
 }
 
 export const EVENTS = {
@@ -124,6 +127,10 @@ export abstract class GameSession<
     });
   }
 
+  get logger() {
+    return this.ctx.logger;
+  }
+
   on(event: RoomEvent, cb: (...args: any[]) => void): () => void {
     //
     this._emitter.on(event, cb);
@@ -150,7 +157,7 @@ export abstract class GameSession<
   }
 
   startGame(countdownSecs: number) {
-    console.log("Starting game in", countdownSecs, "seconds");
+    this.logger.log("Starting game in", countdownSecs, "seconds");
     const countdownMillis = countdownSecs * 1000;
 
     // notift all players after countdown, take into account player's latency
@@ -265,7 +272,7 @@ export abstract class GameSession<
       const pending = this._pendingPings[pingId];
 
       if (pending == null || pending.sessionId !== sessionId) {
-        console.error("No pending ping for player", sessionId);
+        this.logger.error("No pending ping for player", sessionId);
         return;
       }
 
@@ -304,7 +311,7 @@ export abstract class GameSession<
     const player = this.state.players.get(sessionId);
 
     if (player == null) {
-      console.error("Player not found", sessionId);
+      this.logger.error("Player not found", sessionId);
     }
 
     return player;
@@ -369,7 +376,9 @@ export abstract class GameSession<
 
         if (noServerSpace) {
           //
-          console.error("Server side physics is disabled in this environment");
+          this.logger.error(
+            "Server side physics is disabled in this environment"
+          );
         } else {
           //
           const SpaceProxy =
@@ -379,7 +388,7 @@ export abstract class GameSession<
           try {
             // We must run the server space, so that the space scripts
             // can attach their schemas to the room state
-            console.log("Server simulation enabled. Creating server space");
+            this.logger.log("Server simulation enabled. Creating server space");
 
             await this.spaceProxy.init({
               session: this,
@@ -387,10 +396,10 @@ export abstract class GameSession<
               isDraft: true,
             });
 
-            console.log("Server space created");
+            this.logger.log("Server space created");
           } catch (e) {
             //
-            console.error("Error creating server space", e);
+            this.logger.error("Error creating server space", e);
             throw e;
           }
         }
@@ -420,7 +429,7 @@ export abstract class GameSession<
 
       this.state.stats.start();
 
-      console.log("Room created", this.gameId);
+      this.logger.log("Room created", this.gameId);
     },
 
     join: async (params: object) => {
@@ -440,7 +449,7 @@ export abstract class GameSession<
       this.spaceProxy?.onJoin(player.toJSON());
       // send ping to client to measure latency
       this._PING_._pingLoop(playerData.sessionId);
-      console.log("player joined", playerData.sessionId);
+      this.logger.log("player joined", playerData.sessionId);
     },
 
     disconnect: (sessionId: string) => {
@@ -467,11 +476,11 @@ export abstract class GameSession<
       //
       const player = this.state.players.get(sessionId);
       if (player == null) {
-        console.error("Player not found", sessionId);
+        this.logger.error("Player not found", sessionId);
         return;
       }
 
-      console.log("player left", sessionId);
+      this.logger.log("player left", sessionId);
 
       this._PING_._clearPingLoop(sessionId);
 
@@ -523,7 +532,7 @@ export abstract class GameSession<
         const player = this.state.players.get(sessionId);
 
         if (player == null) {
-          console.error(`Player ${sessionId} not found`);
+          this.logger.error(`Player ${sessionId} not found`);
           return;
         }
 
@@ -573,7 +582,7 @@ export abstract class GameSession<
           }
         } else {
           //
-          console.error("Unknown message type", (msg as any).type);
+          this.logger.error("Unknown message type", (msg as any).type);
         }
       }
     },
@@ -633,7 +642,7 @@ export abstract class GameSession<
         throw new Error("Room is full " + nbPlayers + " >= " + this.maxPlayers);
       }
     } catch (e) {
-      console.error("validateJoin", e);
+      this.logger.error("validateJoin", e);
       throw e;
     }
   }
@@ -670,7 +679,7 @@ export abstract class GameSession<
         (!Array.isArray(exclude) ||
           exclude.some((sessionId) => typeof sessionId !== "string"))
       ) {
-        console.warn("invalid exclude argument");
+        this.logger.warn("invalid exclude argument");
         return;
       }
 

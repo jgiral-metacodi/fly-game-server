@@ -9,8 +9,11 @@ import { Mutex } from "async-mutex";
 import { GameApi } from "../cyber/abstract/GameApi";
 import { clearIdleTimeout } from "../timeout";
 import { verify } from "./authMiddleware";
+import { Logger } from "../logger";
 
 const mutex = new Mutex();
+
+const logger = new Logger("Express");
 
 const corsOptions = {
   origin: "*",
@@ -104,7 +107,7 @@ export function initializeExpress(app: any) {
           const uid = decodedToken?.uid;
 
           if (uid?.toLowerCase() !== userId?.toLowerCase()) {
-            console.log("uid mismatch", uid, userId);
+            logger.log("uid mismatch", uid, userId);
             userId = "anon";
           }
         }
@@ -144,7 +147,7 @@ export function initializeExpress(app: any) {
               });
             }
 
-            console.log("/join existing", gameId, userId, username);
+            logger.log("/join existing", gameId, userId, username);
 
             reservation = await matchMaker.joinById(room.roomId, req.body, {});
             //
@@ -157,7 +160,7 @@ export function initializeExpress(app: any) {
               gameData: null,
             };
 
-            console.log("/join new", gameId, userId, username);
+            logger.log("/join new", gameId, userId, username);
 
             const gameData = await GameApi.loadGameData({
               id: req.body.gameId,
@@ -169,11 +172,11 @@ export function initializeExpress(app: any) {
             reservation = await matchMaker.create(type, roomOpts, {});
           }
 
-          console.log(
-            "reservation: ",
-            reservation.room.roomId,
-            reservation.sessionId
-          );
+          // logger.log(
+          //   "reservation: ",
+          //   reservation.room.roomId,
+          //   reservation.sessionId
+          // );
 
           res.json({
             success: true,
@@ -181,7 +184,7 @@ export function initializeExpress(app: any) {
           });
         } catch (err) {
           //
-          console.log("errr", err, type, req.body);
+          logger.error("/join", err, type, req.body);
 
           res.status(500).json({
             success: false,
@@ -190,7 +193,7 @@ export function initializeExpress(app: any) {
         }
       });
     } catch (err) {
-      console.log("err", err);
+      logger.error("/join", err);
       res.status(500).json({
         success: false,
         message: err?.message ?? err ?? "Unexpected Server Error",

@@ -22,6 +22,8 @@ const corsOptions = {
 
 const isSingleton = process.env.SINGLE_ROOM === "true";
 
+const ROOM_TYPE = "cyber-game";
+
 export function initializeExpress(app: any) {
   //
 
@@ -89,7 +91,15 @@ export function initializeExpress(app: any) {
         });
       }
 
-      let { gameId, userId, username } = req.body;
+      let {
+        roomId: croomId,
+        gameId,
+        userId,
+        username,
+        draft = true,
+      } = req.body;
+
+      croomId ??= gameId;
 
       // token is in X-Auth-Token header
       const token = req.headers["x-auth-token"] as string;
@@ -112,11 +122,9 @@ export function initializeExpress(app: any) {
 
       await mutex.runExclusive(async () => {
         //
-        let type = "cyber-game";
-
         try {
           let rooms = await matchMaker.query({
-            name: type,
+            name: ROOM_TYPE,
           });
 
           if (!isSingleton) {
@@ -125,7 +133,7 @@ export function initializeExpress(app: any) {
                 (room) =>
                   !room.private &&
                   !room.locked &&
-                  room.metadata.gameId === req.body.gameId &&
+                  room.metadata.croomId === croomId &&
                   room.clients < room.maxClients
               )
               .sort((a, b) => b.clients - a.clients);
@@ -137,43 +145,38 @@ export function initializeExpress(app: any) {
             //
             const room = rooms[0];
 
-            if (isSingleton && room.metadata.gameId !== req.body.gameId) {
+            if (isSingleton && room.metadata.croomId !== croomId) {
               return res.status(400).json({
                 success: false,
                 message: "Room is already in use",
               });
             }
 
-            console.log("/join existing", gameId, userId, username);
+            console.log("/join existing", room.roomId);
 
             reservation = await matchMaker.joinById(room.roomId, req.body, {});
             //
           } else {
             const roomOpts = {
-              gameId: req.body.gameId,
-              userId: req.body.userId,
-              username: req.body.username,
-              roomType: type as string,
+              croomId,
+              gameId,
+              userId,
+              username,
+              roomType: ROOM_TYPE,
               gameData: null,
             };
 
-            console.log("/join new", gameId, userId, username);
+            console.log("/join new", roomOpts.gameId, "/", roomOpts.croomId);
 
             const gameData = await GameApi.loadGameData({
-              id: req.body.gameId,
-              draft: req.body.draft ?? true,
+              id: gameId,
+              draft: draft ?? true,
             });
 
             roomOpts.gameData = gameData;
 
-            reservation = await matchMaker.create(type, roomOpts, {});
+            reservation = await matchMaker.create(ROOM_TYPE, roomOpts, {});
           }
-
-          console.log(
-            "reservation: ",
-            reservation.room.roomId,
-            reservation.sessionId
-          );
 
           res.json({
             success: true,
@@ -181,13 +184,78 @@ export function initializeExpress(app: any) {
           });
         } catch (err) {
           //
-          console.log("errr", err, type, req.body);
+          console.log("errr", err, ROOM_TYPE, req.body);
 
           res.status(500).json({
             success: false,
             message: err?.message ?? err ?? "Unexpected Server Error",
           });
         }
+      });
+    } catch (err) {
+      console.log("err", err);
+      res.status(500).json({
+        success: false,
+        message: err?.message ?? err ?? "Unexpected Server Error",
+      });
+    }
+  });
+
+  app.post("/create", async (req: Request, res: Response) => {
+    //
+    console.log("/create", req.body);
+
+    if (isSingleton) {
+      return res.status(403).json({
+        success: false,
+        message: "Room creation is disabled in this server",
+      });
+    }
+
+    clearIdleTimeout();
+
+    try {
+      if (!req.body?.gameId || !req.body?.roomId) {
+        //
+        return res.status(400).json({
+          success: false,
+          message: "Invalid request",
+        });
+      }
+
+      let { roomId: croomId, gameId, draft = true } = req.body;
+
+      croomId ??= gameId;
+
+      let rooms = await matchMaker.query({
+        name: ROOM_TYPE,
+      });
+
+      if (rooms.some((room) => room.metadata.croomId === croomId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Room already exists",
+        });
+      }
+
+      const roomOpts = {
+        croomId,
+        gameId,
+        roomType: ROOM_TYPE as string,
+        gameData: null,
+      };
+
+      const gameData = await GameApi.loadGameData({
+        id: gameId,
+        draft: draft ?? true,
+      });
+
+      roomOpts.gameData = gameData;
+
+      await matchMaker.createRoom(ROOM_TYPE, roomOpts);
+
+      res.json({
+        success: true,
       });
     } catch (err) {
       console.log("err", err);

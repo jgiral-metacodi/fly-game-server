@@ -53,6 +53,8 @@ function setMinMax(value: number, def: number, min: number, max: number) {
 }
 
 export interface GameRoomCtx {
+  roomId: string;
+  clientRoomId: string;
   gameId: string;
   gameData: any;
 
@@ -135,6 +137,10 @@ export abstract class GameSession<
 
   off(event: RoomEvent, cb: (...args: any[]) => void) {
     this._emitter.off(event, cb);
+  }
+
+  get roomId() {
+    return this.ctx.roomId;
   }
 
   get gameId() {
@@ -420,7 +426,7 @@ export abstract class GameSession<
 
       this.state.stats.start();
 
-      console.log("Room created", this.gameId);
+      console.log("Room created", this.gameId, "/", this.ctx.clientRoomId);
     },
 
     join: async (params: object) => {

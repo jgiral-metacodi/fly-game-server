@@ -19,6 +19,8 @@ export class ColyseusGameRoom extends Room {
 
   private _gameId: string;
 
+  private _croomId: string;
+
   private _gameData: any;
 
   private _logger = logger;
@@ -64,6 +66,10 @@ export class ColyseusGameRoom extends Room {
 
   get gameId() {
     return this._gameId;
+  }
+
+  get clientRoomId() {
+    return this._croomId;
   }
 
   get gameData() {
@@ -126,6 +132,8 @@ export class ColyseusGameRoom extends Room {
       this._gameId =
         opts.gameId ?? "anon-" + Math.random().toString(36).substr(2, 9);
 
+      this._croomId = opts.croomId || "";
+
       this._gameData = opts.gameData;
 
       let roomHandlerClass = null; //ScriptFactory.instance.init(opts.gameData);
@@ -164,6 +172,7 @@ export class ColyseusGameRoom extends Room {
 
       this.setMetadata({
         gameId: this._gameId,
+        croomId: this._croomId,
         name: opts.gameName ?? "-",
       });
       //
@@ -311,9 +320,10 @@ export class ColyseusGameRoom extends Room {
     this._logger.info("Room disposed");
 
     // startIdleTimeout();
-    process.exit(0);
-
-    this._roomHandler?._CALLBACKS_.shutdown();
+    if (isSingletonRoom) {
+      this._roomHandler?._CALLBACKS_.shutdown();
+      process.exit(0);
+    }
   }
 }
 

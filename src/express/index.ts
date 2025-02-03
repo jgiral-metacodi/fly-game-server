@@ -205,13 +205,6 @@ export function initializeExpress(app: any) {
     //
     console.log("/create", req.body);
 
-    if (isSingleton) {
-      return res.status(403).json({
-        success: false,
-        message: "Room creation is disabled in this server",
-      });
-    }
-
     clearIdleTimeout();
 
     try {
@@ -230,6 +223,13 @@ export function initializeExpress(app: any) {
       let rooms = await matchMaker.query({
         name: ROOM_TYPE,
       });
+
+      if (isSingleton && rooms.length > 0) {
+        return res.status(403).json({
+          success: false,
+          message: "Singleton room already exists",
+        });
+      }
 
       if (rooms.some((room) => room.metadata.croomId === croomId)) {
         return res.status(400).json({

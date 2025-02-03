@@ -256,6 +256,7 @@ export function initializeExpress(app: any) {
 
       res.json({
         success: true,
+        machineId: process.env.FLY_MACHINE_ID,
       });
     } catch (err) {
       console.log("err", err);

@@ -344,6 +344,8 @@ export class ServerSpace {
     // GlobalRegistrator.unregister();
     try {
       //
+      console.log("Disposing game space");
+
       this.stopGame();
 
       clearInterval(this.iv);

@@ -96,7 +96,7 @@ export interface SolSignAndSendTransactionParams {
 /**
  * PrivyServer - A wrapper around @privy-io/server-auth's wallet methods for Ethereum and Solana
  */
-class PrivyServer {
+export class PrivyServer {
   #client: PrivyClient;
 
   constructor() {
@@ -408,5 +408,3 @@ class PrivyServer {
     };
   }
 }
-
-export default new PrivyServer();

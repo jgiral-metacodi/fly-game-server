@@ -1,14 +1,9 @@
-import type { PrivyClient } from "@privy-io/server-auth";
 import { privyClient } from "../tokens/utils";
+import type { Transaction, VersionedTransaction } from "@solana/web3.js";
 
 export interface EthSignMessageParams {
   walletId: string;
   message: string;
-}
-
-export interface SignMessageResponse {
-  signature: string;
-  encoding: string;
 }
 
 export interface TypedDataDomain {
@@ -36,11 +31,6 @@ export interface EthSignTypedDataParams {
   typedData: TypedData;
 }
 
-export interface SignTypedDataResponse {
-  signature: string;
-  encoding: string;
-}
-
 export interface EthTransactionRequest {
   to: string;
   value: number;
@@ -58,19 +48,10 @@ export interface EthSignTransactionParams {
   transaction: EthTransactionRequest;
 }
 
-export interface EthSignTransactionResponse {
-  signedTransaction: string;
-  encoding: string;
-}
-
 export interface EthSendTransactionParams {
   walletId: string;
   caip2: string; // Chain identifier in format "eip155:<chainId>"
   transaction: EthTransactionRequest;
-}
-
-export interface SendTransactionResponse {
-  hash: string;
 }
 
 export interface SolSignMessageParams {
@@ -80,28 +61,20 @@ export interface SolSignMessageParams {
 
 export interface SolSignTransactionParams {
   walletId: string;
-  transaction: any; // Transaction | VersionedTransaction from @solana/web3.js
-}
-
-export interface SolSignTransactionResponse {
-  signedTransaction: any; // The signed transaction object
+  transaction: VersionedTransaction | Transaction;
 }
 
 export interface SolSignAndSendTransactionParams {
   walletId: string;
   caip2: string; // Chain identifier in format "solana:<cluster>"
-  transaction: any; // Transaction | VersionedTransaction from @solana/web3.js
+  transaction: VersionedTransaction | Transaction;
 }
 
 /**
  * PrivyServer - A wrapper around @privy-io/server-auth's wallet methods for Ethereum and Solana
  */
 export class PrivyServer {
-  #client: PrivyClient;
-
-  constructor() {
-    this.#client = privyClient;
-  }
+  constructor() {}
 
   /**
    * Sign a message with an Ethereum wallet
@@ -117,95 +90,16 @@ export class PrivyServer {
    * });
    * ```
    */
-  async signEthMessage(
-    params: EthSignMessageParams
-  ): Promise<SignMessageResponse> {
+  async signEthMessage(params: EthSignMessageParams) {
     const { walletId, message } = params;
 
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "personal_sign",
-      params: {
-        message,
-        encoding: "utf-8",
-      },
+    const response = await privyClient.walletApi.ethereum.signMessage({
+      message,
+      address: walletId,
       chainType: "ethereum",
     });
 
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      signature: String(responseData?.signature || ""),
-      encoding: "utf-8",
-    };
-  }
-
-  /**
-   * Sign typed data with an Ethereum wallet (EIP-712)
-   *
-   * @param params - Parameters for signing typed data
-   * @returns The signature and encoding
-   *
-   * @example
-   * ```typescript
-   * const { signature, encoding } = await privyDelegate.signEthTypedData({
-   *   walletId: 'your-wallet-id',
-   *   typedData: {
-   *     domain: {
-   *       name: 'Ether Mail',
-   *       version: '1',
-   *       chainId: 1,
-   *       verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-   *     },
-   *     types: {
-   *       Person: [
-   *         { name: 'name', type: 'string' },
-   *         { name: 'wallet', type: 'address' },
-   *       ],
-   *       Mail: [
-   *         { name: 'from', type: 'Person' },
-   *         { name: 'to', type: 'Person' },
-   *         { name: 'contents', type: 'string' },
-   *       ],
-   *     },
-   *     primaryType: 'Mail',
-   *     message: {
-   *       from: {
-   *         name: 'Cow',
-   *         wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-   *       },
-   *       to: {
-   *         name: 'Bob',
-   *         wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-   *       },
-   *       contents: 'Hello, Bob!',
-   *     },
-   *   },
-   * });
-   * ```
-   */
-  async signEthTypedData(
-    params: EthSignTypedDataParams
-  ): Promise<SignTypedDataResponse> {
-    const { walletId, typedData } = params;
-
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "eth_signTypedData_v4",
-      params: {
-        typedData,
-      },
-      chainType: "ethereum",
-    });
-
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      signature: String(responseData?.signature || ""),
-      encoding: "utf-8",
-    };
+    return response;
   }
 
   /**
@@ -226,27 +120,16 @@ export class PrivyServer {
    * });
    * ```
    */
-  async signEthTransaction(
-    params: EthSignTransactionParams
-  ): Promise<EthSignTransactionResponse> {
+  async signEthTransaction(params: EthSignTransactionParams) {
     const { walletId, transaction } = params;
 
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "eth_signTransaction",
-      params: {
-        transaction,
-      },
+    const response = await privyClient.walletApi.ethereum.signTransaction({
+      transaction,
+      address: walletId,
       chainType: "ethereum",
     });
 
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      signedTransaction: String(responseData?.signedTransaction || ""),
-      encoding: "utf-8",
-    };
+    return response;
   }
 
   /**
@@ -268,27 +151,17 @@ export class PrivyServer {
    * });
    * ```
    */
-  async sendEthTransaction(
-    params: EthSendTransactionParams
-  ): Promise<SendTransactionResponse> {
+  async sendEthTransaction(params: EthSendTransactionParams) {
     const { walletId, caip2, transaction } = params;
 
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "eth_sendTransaction",
-      params: {
-        transaction,
-      },
-      chainType: "ethereum",
+    const response = await privyClient.walletApi.ethereum.sendTransaction({
       caip2,
+      transaction,
+      address: walletId,
+      chainType: "ethereum",
     });
 
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      hash: String(responseData?.hash || responseData?.txHash || ""),
-    };
+    return response;
   }
 
   /**
@@ -305,28 +178,17 @@ export class PrivyServer {
    * });
    * ```
    */
-  async signSolMessage(
-    params: SolSignMessageParams
-  ): Promise<SignMessageResponse> {
+  async signSolMessage(params: SolSignMessageParams) {
+    //
     const { walletId, message } = params;
 
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "signMessage",
-      params: {
-        message,
-        encoding: "utf-8",
-      },
+    const response = await privyClient.walletApi.solana.signMessage({
+      message,
+      address: walletId,
       chainType: "solana",
     });
 
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      signature: String(responseData?.signature || ""),
-      encoding: "utf-8",
-    };
+    return response;
   }
 
   /**
@@ -343,26 +205,16 @@ export class PrivyServer {
    * });
    * ```
    */
-  async signSolTransaction(
-    params: SolSignTransactionParams
-  ): Promise<SolSignTransactionResponse> {
+  async signSolTransaction(params: SolSignTransactionParams) {
     const { walletId, transaction } = params;
 
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "signTransaction",
-      params: {
-        transaction,
-      },
+    const response = await privyClient.walletApi.solana.signTransaction({
+      address: walletId,
       chainType: "solana",
+      transaction: transaction,
     });
 
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      signedTransaction: responseData?.signedTransaction || null,
-    };
+    return response;
   }
 
   /**
@@ -380,31 +232,14 @@ export class PrivyServer {
    * });
    * ```
    */
-  async signAndSendSolTransaction(
-    params: SolSignAndSendTransactionParams
-  ): Promise<SendTransactionResponse> {
+  async signAndSendSolTransaction(params: SolSignAndSendTransactionParams) {
     const { walletId, caip2, transaction } = params;
-
-    const response = await this.#client.walletApi.rpc({
-      walletId,
-      method: "signAndSendTransaction",
-      params: {
-        transaction,
-      },
+    const response = await privyClient.walletApi.solana.signAndSendTransaction({
+      address: walletId,
       chainType: "solana",
       caip2,
+      transaction,
     });
-
-    // Cast response to any to safely extract data
-    const responseData = response as any;
-
-    return {
-      hash: String(
-        responseData?.hash ||
-          responseData?.txHash ||
-          responseData?.signature ||
-          ""
-      ),
-    };
+    return response;
   }
 }

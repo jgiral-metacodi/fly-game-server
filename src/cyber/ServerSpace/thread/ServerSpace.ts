@@ -89,6 +89,12 @@ export class ServerSpace {
 
     console.log("Loading game space...");
 
+    const PRIVATE_KEY = process.env.PRIVATE_KEY;
+    const ALCHEMY_KEY = process.env.ALCHEMY_KEY;
+
+    delete process.env.PRIVATE_KEY;
+    delete process.env.ALCHEMY_KEY;
+
     const res = await loadGame(gameData, {
       debugPhysics: opts.debugPhysics ?? true,
       serverApi: {
@@ -96,8 +102,8 @@ export class ServerSpace {
         Ai: this.serverApi.ai,
         Web3: new Web3Api({
           web3provider: new LocalProvider({
-            privateKey: process.env.PRIVATE_KEY,
-            alchemyKey: process.env.ALCHEMY_KEY,
+            privateKey: PRIVATE_KEY,
+            alchemyKey: ALCHEMY_KEY,
           }),
         }),
         Tokens: Tokens,

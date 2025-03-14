@@ -6,7 +6,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import zod from "zod";
 
 const OPEN_API_KEY = process.env.OPEN_API_KEY;
-const ANTHR_API_KEY = process.env.ANTHROPIC_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
@@ -28,7 +28,7 @@ const providers = {
 
   anthropic: createAnthropic({
     fetch: modelFetch,
-    apiKey: ANTHR_API_KEY,
+    apiKey: ANTHROPIC_API_KEY,
   }),
   google: createGoogleGenerativeAI({
     fetch: modelFetch,

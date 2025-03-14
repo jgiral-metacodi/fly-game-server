@@ -6,6 +6,7 @@ import { ServerApi, ServerHandler } from "./ServerApi";
 // @ts-ignore
 import { Web3Api, LocalProvider } from "@oogg/server-engine";
 import { PlayerData } from "../../abstract/types";
+import { PrivyServer } from "../../libs/PrivyServer";
 
 export interface ServerSpaceParams {
   gameData: any;
@@ -100,6 +101,7 @@ export class ServerSpace {
           }),
         }),
         Tokens: Tokens,
+        PrivyServer: new PrivyServer(),
       },
       serverLibs: {
         ethers,

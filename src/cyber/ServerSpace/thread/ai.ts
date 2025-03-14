@@ -5,6 +5,16 @@ import { createGroq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import zod from "zod";
 
+const OPEN_API_KEY = process.env.OPEN_API_KEY;
+const ANTHR_API_KEY = process.env.ANTHROPIC_API_KEY;
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+
+delete process.env.OPEN_API_KEY;
+delete process.env.ANTHROPIC_API_KEY;
+delete process.env.GROQ_API_KEY;
+delete process.env.GOOGLE_API_KEY;
+
 const modelFetch = (url, opts) => {
   return globalThis.$$ofetch(url, opts);
 };
@@ -13,16 +23,20 @@ const providers = {
   openai: createOpenAI({
     compatibility: "strict",
     fetch: modelFetch,
+    apiKey: OPEN_API_KEY,
   }),
 
   anthropic: createAnthropic({
     fetch: modelFetch,
+    apiKey: ANTHR_API_KEY,
   }),
   google: createGoogleGenerativeAI({
     fetch: modelFetch,
+    apiKey: GOOGLE_API_KEY,
   }),
   groq: createGroq({
     fetch: modelFetch,
+    apiKey: GROQ_API_KEY,
   }),
 };
 

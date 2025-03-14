@@ -15,15 +15,22 @@ import { buildVersionedTx, PumpFunSDK } from "pumpdotfun-sdk";
 export const CONNECTION_URL =
   "https://mainnet.helius-rpc.com/?api-key=8d991eed-5073-4a20-8d81-78e30b17241e";
 
+const NEXT_PUBLIC_PRIVY_APP_ID = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+const PRIVY_SECRET_KEY = process.env.PRIVY_SECRET_KEY;
+const PRIVY_WALLET_API_KEY = process.env.PRIVY_WALLET_API_KEY;
+
+delete process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+delete process.env.PRIVY_SECRET_KEY;
+delete process.env.PRIVY_WALLET_API_KEY;
+
 export const CONNECTION = new Connection(CONNECTION_URL);
 
 export const privyClient = new PrivyClient(
-  "cm2vnxyup06z1ger923noqdpe",
-  "5GiKmDcozNAK1fzyv612tc7gCq9hYJbTpz8JFgbKNcJUNrNLx4c4bmBg7QsPmCc7HXUeb7oNpyUQCmtBqUuZQtoR",
+  NEXT_PUBLIC_PRIVY_APP_ID,
+  PRIVY_SECRET_KEY,
   {
     walletApi: {
-      authorizationPrivateKey:
-        "wallet-api:MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgi5ZQEtaKgi5zlRMdK5p1Y5W2v/KJvR7EKuxXV8UI+TKhRANCAAQDg8MPpOutIrRM6EI4JEhZA0G82f37kt3/+olfyePDnrtDPqbog5ke9U36KqppRdRuqCR5toZOeMDvfA48kmAH",
+      authorizationPrivateKey: PRIVY_WALLET_API_KEY,
     },
   }
 );

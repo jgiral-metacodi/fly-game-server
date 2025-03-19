@@ -8,35 +8,29 @@ let iv: NodeJS.Timeout;
 
 export function startIdleTimeout() {
   //
-  if (!isSingletonRoom) return;
-
-  console.log(
-    "Singleton room. Process will exit in",
-    IDLE_TIMEOUT / 1000,
-    "seconds"
-  );
-
+  // if (!isSingletonRoom) return;
+  // console.log(
+  //   "Singleton room. Process will exit in",
+  //   IDLE_TIMEOUT / 1000,
+  //   "seconds"
+  // );
   //   let remainingSecs = IDLE_TIMEOUT / 1000;
-
   //   iv = setInterval(() => {
   //     //
   //     remainingSecs--;
   //     console.log("Remaining time:", remainingSecs, "seconds");
   //   }, 1000);
-
-  idleTimeout = setTimeout(() => {
-    //
-    process.exit(0);
-    //
-  }, IDLE_TIMEOUT);
+  // idleTimeout = setTimeout(() => {
+  //
+  // process.exit(0);
+  //
+  // }, IDLE_TIMEOUT);
 }
 
 export function clearIdleTimeout() {
   //
-  if (!isSingletonRoom) return;
-
-  console.log("Clearing idle timeout");
-
-  // clearInterval(iv);
-  clearTimeout(idleTimeout);
+  // if (!isSingletonRoom) return;
+  // console.log("Clearing idle timeout");
+  // // clearInterval(iv);
+  // clearTimeout(idleTimeout);
 }

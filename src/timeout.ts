@@ -22,7 +22,6 @@ export function startIdleTimeout() {
   //   }, 1000);
   // idleTimeout = setTimeout(() => {
   //
-  // process.exit(0);
   //
   // }, IDLE_TIMEOUT);
 }

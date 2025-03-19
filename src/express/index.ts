@@ -20,6 +20,7 @@ const corsOptions = {
   credentials: true,
 };
 
+const GAME_ID = process.env.GAME_ID;
 const isSingleton = process.env.SINGLE_ROOM === "true";
 
 const ROOM_TYPE = "cyber-game";
@@ -98,6 +99,13 @@ export function initializeExpress(app: any) {
         username,
         draft = true,
       } = req.body;
+
+      if (gameId !== GAME_ID) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid game id",
+        });
+      }
 
       croomId ??= gameId;
 

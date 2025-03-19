@@ -296,9 +296,8 @@ export class ColyseusGameRoom extends Room {
       this._roomHandler._CALLBACKS_.leave(client.sessionId);
 
       if (this.clients.length === 0) {
-        this._logger.info("No more connections, closing room");
-        this.disconnect();
-
+        // this._logger.info("No more connections, closing room");
+        // this.disconnect();
         // this._room._CALLBACKS_.shutdown();
       }
     }
@@ -322,9 +321,9 @@ export class ColyseusGameRoom extends Room {
     this._roomHandler?._CALLBACKS_.shutdown();
 
     // startIdleTimeout();
-    if (isSingletonRoom) {
-      process.exit(0);
-    }
+    // if (isSingletonRoom) {
+    //process.exit(0);
+    // }
   }
 }
 

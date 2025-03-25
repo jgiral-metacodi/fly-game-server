@@ -101,6 +101,12 @@ export class Stats extends Schema {
   }
 }
 
+export class NetState extends Schema {
+  @type("number") version = 0;
+  @type("string") id = "";
+  @type({ map: "string" }) changes = new MapSchema<string>();
+}
+
 export class RoomState extends ExtensibleSchema {
   //
   @type("string") snapshotId: string = null;
@@ -108,6 +114,7 @@ export class RoomState extends ExtensibleSchema {
   @type(Stats) stats = new Stats();
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>();
   @type(RoomSettings) settings = new RoomSettings();
+  @type({ map: NetState }) netStates = new MapSchema<NetState>();
 
   addPlayer(data: any) {
     //

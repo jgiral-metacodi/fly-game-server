@@ -13,7 +13,7 @@ import {
   PlayerStatePayload,
   RpcHandler,
 } from "./types";
-import { RoomState } from "../schema/RoomState";
+import { NetState, RoomState } from "../schema/RoomState";
 import { calcLatencyIPDTV } from "./utils";
 import { PlayerState } from "../schema/PlayerState";
 import type { SpaceProxy } from "../ServerSpace/thread/SpaceProxy";
@@ -565,6 +565,9 @@ export abstract class GameSession<
 
           this.spaceProxy?.onPlayerState(player.toJSON());
           //
+        } else if (msg.type === Messages.NET_STATE) {
+          //
+          this.onNetStateMsg(msg.id, msg.changes);
         } else if (msg.type == Messages.GAME_MESSAGE) {
           //
           this.onMessage(msg.data, player);
@@ -660,6 +663,28 @@ export abstract class GameSession<
       position: excludeTransform,
       rotation: excludeTransform,
     });
+  }
+
+  onNetStateMsg(id: string, changes: Record<string, any>) {
+    //
+    let netState = this.state.netStates.get(id);
+
+    if (netState == null) {
+      netState = new NetState();
+      netState.id = id;
+      this.state.netStates.set(id, netState);
+    }
+
+    Object.keys(changes).forEach((key) => {
+      try {
+        const change = JSON.stringify(changes[key]);
+        netState.changes.set(key, change);
+      } catch (e) {
+        console.error("Error serializing change", key, changes[key]);
+      }
+    });
+
+    netState.version++;
   }
 
   onMessage(msg: ClientMsg, player: PlayerData) {

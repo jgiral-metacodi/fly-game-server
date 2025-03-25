@@ -51,6 +51,7 @@ export enum Messages {
   PLAYER_STATE = 1301,
   BROADCAST = 1302,
   SEND_DM = 1303,
+  NET_STATE = 1304,
 
   // ping
   PING = 1001,
@@ -118,6 +119,12 @@ export interface PlayerStateMsg {
   ];
 }
 
+export interface NetStateMsg {
+  type: Messages.NET_STATE;
+  id: string;
+  changes: Record<string, string>;
+}
+
 export interface BroadcastMsg {
   type: Messages.BROADCAST;
   data: any;
@@ -142,7 +149,8 @@ export type ClientMessage<M> =
   | BroadcastMsg
   | SendDMMsg
   | PongMsg
-  | RpcMsg;
+  | RpcMsg
+  | NetStateMsg;
 
 export interface BaseRoomState extends Schema {
   snapshotId: string;

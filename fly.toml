@@ -26,6 +26,6 @@ retries = 10
 processes = ['app']
 
 [[vm]]
-memory = '1gb'
+memory = '4gb'
 cpu_kind = 'shared'
 cpus = 2

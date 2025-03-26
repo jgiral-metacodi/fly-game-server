@@ -209,6 +209,7 @@ export function initializeExpress(app: any) {
     }
   });
 
+  /*
   app.post("/create", async (req: Request, res: Response) => {
     //
     console.log("/create", req.body);
@@ -274,6 +275,7 @@ export function initializeExpress(app: any) {
       });
     }
   });
+  */
 
   const basicAuthMiddleware = basicAuth({
     users: {

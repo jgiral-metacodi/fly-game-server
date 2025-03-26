@@ -667,6 +667,7 @@ export abstract class GameSession<
 
   onNetStateMsg(id: string, changes: Record<string, any>) {
     //
+    // console.log("onNetStateMsg", id, changes);
     let netState = this.state.netStates.get(id);
 
     if (netState == null) {
@@ -677,10 +678,9 @@ export abstract class GameSession<
 
     Object.keys(changes).forEach((key) => {
       try {
-        const change = JSON.stringify(changes[key]);
-        netState.changes.set(key, change);
+        netState.changes.set(key, changes[key]);
       } catch (e) {
-        console.error("Error serializing change", key, changes[key]);
+        console.error(e);
       }
     });
 

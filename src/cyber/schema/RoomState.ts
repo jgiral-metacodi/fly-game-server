@@ -1,7 +1,8 @@
-import { Schema, type, MapSchema } from "@colyseus/schema";
+import { Schema, type, MapSchema, ArraySchema } from "@colyseus/schema";
 import { PlayerState } from "./PlayerState";
 import { GameTimer } from "./GameTimer";
 import { EntityState, ExtSchema, register } from "./register";
+import { NetStateEventPayload } from "../abstract/types";
 
 export class ExtensibleSchema extends Schema {
   //
@@ -101,10 +102,53 @@ export class Stats extends Schema {
   }
 }
 
-export class NetState extends Schema {
-  @type("number") version = 0;
+export class NetStateEvent extends Schema {
   @type("string") id = "";
-  @type({ map: "string" }) changes = new MapSchema<string>();
+  @type("string") sender = "";
+  @type("string") data = "";
+  @type("number") timestamp = 0;
+}
+
+export class NetStateSnapshot extends Schema {
+  @type("string") lastAppliedEventId = "";
+  @type("string") state = "";
+}
+
+export class NetState extends Schema {
+  @type("number") version = -1;
+  @type("string") id = "";
+  @type(NetStateSnapshot) snapshot = new NetStateSnapshot();
+  @type({ array: NetStateEvent }) events = new ArraySchema<NetStateEvent>();
+
+  addEvent(event: NetStateEventPayload, sender: string) {
+    //
+    const newEvent = new NetStateEvent();
+    newEvent.id = event.id;
+    newEvent.sender = sender;
+    newEvent.data = event.data;
+    newEvent.timestamp = Date.now();
+
+    this.events.push(newEvent);
+    this.version++;
+  }
+
+  applySnapshot(opts: { state: string; lastAppliedEventId: string }) {
+    //
+    const lastAppliedEventIndex = this.events.findIndex(
+      (event) => event.id === opts.lastAppliedEventId
+    );
+    if (lastAppliedEventIndex < 0) {
+      console.error(
+        `lastAppliedEventId ${opts.lastAppliedEventId} not found in events`
+      );
+      return;
+    }
+
+    this.snapshot.state = opts.state;
+    this.snapshot.lastAppliedEventId = opts.lastAppliedEventId;
+    // purge past events
+    this.events.splice(0, lastAppliedEventIndex);
+  }
 }
 
 export class RoomState extends ExtensibleSchema {

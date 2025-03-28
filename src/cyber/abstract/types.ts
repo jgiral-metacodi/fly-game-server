@@ -119,10 +119,15 @@ export interface PlayerStateMsg {
   ];
 }
 
+export interface NetStateEventPayload {
+  id: string;
+  data: string;
+}
+
 export interface NetStateMsg {
   type: Messages.NET_STATE;
-  id: string;
-  changes: Record<string, string>;
+  id: string; // netstate id
+  event: NetStateEventPayload;
 }
 
 export interface BroadcastMsg {

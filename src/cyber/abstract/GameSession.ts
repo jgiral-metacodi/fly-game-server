@@ -12,6 +12,8 @@ import {
   PongMsg,
   PlayerStatePayload,
   RpcHandler,
+  NetStateEventPayload,
+  NetStateMsg,
 } from "./types";
 import { NetState, RoomState } from "../schema/RoomState";
 import { calcLatencyIPDTV } from "./utils";
@@ -567,7 +569,7 @@ export abstract class GameSession<
           //
         } else if (msg.type === Messages.NET_STATE) {
           //
-          this.onNetStateMsg(msg.id, msg.changes);
+          this.onNetStateMsg(msg, player);
         } else if (msg.type == Messages.GAME_MESSAGE) {
           //
           this.onMessage(msg.data, player);
@@ -665,26 +667,18 @@ export abstract class GameSession<
     });
   }
 
-  onNetStateMsg(id: string, changes: Record<string, any>) {
+  onNetStateMsg(msg: NetStateMsg, player: PlayerData) {
     //
     // console.log("onNetStateMsg", id, changes);
-    let netState = this.state.netStates.get(id);
+    let netState = this.state.netStates.get(msg.id);
 
     if (netState == null) {
       netState = new NetState();
-      netState.id = id;
-      this.state.netStates.set(id, netState);
+      netState.id = msg.id;
+      this.state.netStates.set(msg.id, netState);
     }
 
-    Object.keys(changes).forEach((key) => {
-      try {
-        netState.changes.set(key, changes[key]);
-      } catch (e) {
-        console.error(e);
-      }
-    });
-
-    netState.version++;
+    netState.addEvent(msg.event, player.sessionId);
   }
 
   onMessage(msg: ClientMsg, player: PlayerData) {

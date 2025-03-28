@@ -3,7 +3,7 @@ const BASE_URL = "https://game-gen-git-segs-oncyber.vercel.app";
 const GAME_API_URL = `${BASE_URL}/api/games/awe`;
 
 const AWE_BASE_URL = "https://oo-git-dev-oncyber.vercel.app";
-const AWE_GAME_API_URL = `${BASE_URL}/api/games`;
+const AWE_GAME_API_URL = `${AWE_BASE_URL}/api/games`;
 
 const GAME_SERVER_KEY = process.env.GAME_SERVER_KEY;
 
@@ -86,7 +86,7 @@ export class GameApi {
   static async loadGameDataAwe(opts: { id: string; draft?: boolean }) {
     // fetch the space here...
     const reponse = await fetch(
-      `${GAME_API_URL}/${opts.id}?draft=${opts.draft}`,
+      `${AWE_GAME_API_URL}/${opts.id}?draft=${opts.draft}`,
       {
         headers: {
           "x-server-key": GAME_SERVER_KEY,

@@ -13,7 +13,8 @@ import {
   PlayerStatePayload,
   RpcHandler,
   NetStateEventPayload,
-  NetStateMsg,
+  NetStateEventMsg,
+  NetStateSnapshotMsg,
 } from "./types";
 import { NetState, RoomState } from "../schema/RoomState";
 import { calcLatencyIPDTV } from "./utils";
@@ -567,9 +568,12 @@ export abstract class GameSession<
 
           this.spaceProxy?.onPlayerState(player.toJSON());
           //
-        } else if (msg.type === Messages.NET_STATE) {
+        } else if (msg.type === Messages.NET_STATE_EVENT) {
           //
-          this.onNetStateMsg(msg, player);
+          this.onNetStateEventMsg(msg, player);
+        } else if (msg.type === Messages.NET_STATE_SNAPSHOT) {
+          //
+          this.onNetStateSnapshotMsg(msg, player);
         } else if (msg.type == Messages.GAME_MESSAGE) {
           //
           this.onMessage(msg.data, player);
@@ -667,9 +671,9 @@ export abstract class GameSession<
     });
   }
 
-  onNetStateMsg(msg: NetStateMsg, player: PlayerData) {
+  onNetStateEventMsg(msg: NetStateEventMsg, player: PlayerData) {
     //
-    // console.log("onNetStateMsg", id, changes);
+    console.log("onNetStateEventMsg", msg);
     let netState = this.state.netStates.get(msg.id);
 
     if (netState == null) {
@@ -678,7 +682,19 @@ export abstract class GameSession<
       this.state.netStates.set(msg.id, netState);
     }
 
-    netState.addEvent(msg.event, player.sessionId);
+    netState.addEvents(msg.events, player.sessionId);
+  }
+
+  onNetStateSnapshotMsg(msg: NetStateSnapshotMsg, player: PlayerData) {
+    //
+    console.log("onNetStateSnapshotMsg", msg);
+    let netState = this.state.netStates.get(msg.id);
+    if (netState == null) {
+      netState = new NetState();
+      netState.id = msg.id;
+      this.state.netStates.set(msg.id, netState);
+    }
+    netState.applySnapshot(msg.snapshot);
   }
 
   onMessage(msg: ClientMsg, player: PlayerData) {

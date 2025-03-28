@@ -111,7 +111,7 @@ export class NetStateEvent extends Schema {
 
 export class NetStateSnapshot extends Schema {
   @type("string") lastAppliedEventId = "";
-  @type("string") state = "";
+  @type("string") state = "null";
 }
 
 export class NetState extends Schema {
@@ -120,34 +120,37 @@ export class NetState extends Schema {
   @type(NetStateSnapshot) snapshot = new NetStateSnapshot();
   @type({ array: NetStateEvent }) events = new ArraySchema<NetStateEvent>();
 
-  addEvent(event: NetStateEventPayload, sender: string) {
+  addEvents(events: NetStateEventPayload[], sender: string) {
     //
-    const newEvent = new NetStateEvent();
-    newEvent.id = event.id;
-    newEvent.sender = sender;
-    newEvent.data = event.data;
-    newEvent.timestamp = Date.now();
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
+      const newEvent = new NetStateEvent();
+      newEvent.id = event.id;
+      newEvent.sender = sender;
+      newEvent.data = event.data;
+      newEvent.timestamp = Date.now();
 
-    this.events.push(newEvent);
+      this.events.push(newEvent);
+    }
     this.version++;
   }
 
-  applySnapshot(opts: { state: string; lastAppliedEventId: string }) {
+  applySnapshot(snapshot: { state: string; lastAppliedEventId: string }) {
     //
     const lastAppliedEventIndex = this.events.findIndex(
-      (event) => event.id === opts.lastAppliedEventId
+      (event) => event.id === snapshot.lastAppliedEventId
     );
     if (lastAppliedEventIndex < 0) {
       console.error(
-        `lastAppliedEventId ${opts.lastAppliedEventId} not found in events`
+        `lastAppliedEventId ${snapshot.lastAppliedEventId} not found in events`
       );
       return;
     }
 
-    this.snapshot.state = opts.state;
-    this.snapshot.lastAppliedEventId = opts.lastAppliedEventId;
+    this.snapshot.state = snapshot.state;
+    this.snapshot.lastAppliedEventId = snapshot.lastAppliedEventId;
     // purge past events
-    this.events.splice(0, lastAppliedEventIndex);
+    this.events.splice(0, lastAppliedEventIndex + 1);
   }
 }
 

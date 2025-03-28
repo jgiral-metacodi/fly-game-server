@@ -1,4 +1,5 @@
 import type { MapSchema, Schema } from "@colyseus/schema";
+import exp from "constants";
 
 export const PLAYER_ROLES = {
   host: "host",
@@ -51,7 +52,8 @@ export enum Messages {
   PLAYER_STATE = 1301,
   BROADCAST = 1302,
   SEND_DM = 1303,
-  NET_STATE = 1304,
+  NET_STATE_EVENT = 1304,
+  NET_STATE_SNAPSHOT = 1305,
 
   // ping
   PING = 1001,
@@ -124,10 +126,19 @@ export interface NetStateEventPayload {
   data: string;
 }
 
-export interface NetStateMsg {
-  type: Messages.NET_STATE;
+export interface NetStateEventMsg {
+  type: Messages.NET_STATE_EVENT;
   id: string; // netstate id
-  event: NetStateEventPayload;
+  events: NetStateEventPayload[];
+}
+
+export interface NetStateSnapshotMsg {
+  type: Messages.NET_STATE_SNAPSHOT;
+  id: string; // netstate id
+  snapshot: {
+    state: string;
+    lastAppliedEventId: string;
+  };
 }
 
 export interface BroadcastMsg {
@@ -155,7 +166,8 @@ export type ClientMessage<M> =
   | SendDMMsg
   | PongMsg
   | RpcMsg
-  | NetStateMsg;
+  | NetStateEventMsg
+  | NetStateSnapshotMsg;
 
 export interface BaseRoomState extends Schema {
   snapshotId: string;

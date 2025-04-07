@@ -3,13 +3,13 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'awe-game-server'
-primary_region = 'iad'
+app = 'r3s3t'
+primary_region = 'mad'
 
 [build]
 
 [env]
-FLY_PROXY = 'awe-game-router.fly.dev'
+FLY_PROXY = 'r3s3t.fly.dev'
 SINGLE_ROOM = 'true'
 ROOM_IDLE_TIMEOUT_SEC = '1800'
 
